@@ -32,7 +32,7 @@ namespace MidNite.Controllers
             var Password = Request.Form["Password"].ToString();
             var ProfileImage = Request.Form.Files;
             //_registerUsersService.CreateUserAsync();
-           
+            /// cuhange
 
             if (ProfileImage.Count > 0)
             {
