@@ -28,5 +28,6 @@ namespace MidNite.Core.RegisterUsers
         [MinLength(8)]
         public string Password { get; set; }
 
+        public int LoginUserId { get; set; }
     }
 }
