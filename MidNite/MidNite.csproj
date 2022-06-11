@@ -20,6 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Core\LoginUsers\" />
+    <Folder Include="Migrations\" />
     <Folder Include="Service\RegisterUsers\Dto\" />
   </ItemGroup>
 

@@ -21,12 +21,6 @@ namespace MidNite.Controllers
             _midNiteAPIDbContext = midNiteAPIDbContext;
         }
 
-        [HttpGet]
-        public IEnumerable<string> Get()
-        {
-            return new string[] { "value1", "value2" };
-        }
-
         // GET api/<LoginUserController>/5
         [HttpGet("{id}")]
         public string Get(int id)
@@ -38,13 +32,13 @@ namespace MidNite.Controllers
         [HttpPost]
         public ActionResult Post(LoginUserDto input)
         {
-            
-            var getHashedPassword = _midNiteAPIDbContext.RegisterUsers.Where(b => b.UserName == input.UserName).Select(a => a.Password).FirstOrDefault();
+            var getHashedPassword = _midNiteAPIDbContext.RegisterUsers.Where(b => b.UserName == input.UserName).Select(a => new { a.Password, a.RegisterUserId }).FirstOrDefault();
             if (getHashedPassword != null)
             {
-                if (BCrypt.Net.BCrypt.Verify(input.Password, getHashedPassword))
+                if (BCrypt.Net.BCrypt.Verify(input.Password, getHashedPassword.Password))
                 {
-                    return Ok("Successful");
+                    var userId = getHashedPassword.RegisterUserId;
+                    return Ok(userId);
                 }
                 else
                 {
@@ -57,17 +51,6 @@ namespace MidNite.Controllers
             }
             //_midNiteAPIDbContext.RegisterUsers.Where(a => a.UserName == value && (BCrypt.Net.BCrypt.Verify(value,)).GetHashCode();
         }
-
-        // PUT api/<LoginUserController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE api/<LoginUserController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
-        }
+ 
     }
 }

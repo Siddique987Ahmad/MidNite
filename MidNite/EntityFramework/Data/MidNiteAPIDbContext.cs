@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using MidNite.Core.Events;
 using MidNite.Core.RegisterUsers;
 using System;
 using System.Collections.Generic;
@@ -15,5 +16,6 @@ namespace MidNite.EntityFramework.Data
 
         }
         public DbSet<RegisterUser> RegisterUsers { get; set; }
+        public DbSet<Event> Events { get; set; }
     }
 }

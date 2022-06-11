@@ -7,6 +7,7 @@ using MidNite.Service.RegisterUsers;
 using System;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 
 namespace MidNite.Controllers
 {
@@ -14,12 +15,10 @@ namespace MidNite.Controllers
     [Route("api/[controller]")]
     public class RegisterUserController : ControllerBase
     {
-        private readonly RegisterUsersService _registerUsersService;
         private readonly IWebHostEnvironment _hostEnvironment;
         private readonly MidNiteAPIDbContext _midNiteAPIDbContext;
-        public RegisterUserController(RegisterUsersService RegisterUserService, MidNiteAPIDbContext midNiteAPIDbContext ,IWebHostEnvironment webHostEnvironment)
+        public RegisterUserController(MidNiteAPIDbContext midNiteAPIDbContext, IWebHostEnvironment webHostEnvironment)
         {
-            _registerUsersService = RegisterUserService;
             _hostEnvironment = webHostEnvironment;
             _midNiteAPIDbContext = midNiteAPIDbContext;
         }
@@ -27,7 +26,7 @@ namespace MidNite.Controllers
         [HttpPost]
         public ActionResult RegisterUser()
         {
-            RegisterUser registerUser = new RegisterUser();
+            RegisterUser registerUser = new();
             var FirstName = Request.Form["FirstName"].ToString();
             var LastName = Request.Form["LastName"].ToString();
             var UserName = Request.Form["UserName"].ToString();
@@ -38,63 +37,71 @@ namespace MidNite.Controllers
                                        CultureInfo.InvariantCulture);
             var Password = Request.Form["Password"].ToString();
             var ProfileImage = Request.Form.Files;
-            
+            string DbPath = string.Empty;
+            const int workFactor = 10;
             if (ProfileImage.Count > 0)
             {
-                string path = Directory.GetCurrentDirectory();
-                if (path.Equals(Directory.GetCurrentDirectory()))
+                DbPath = HelperFunction.SetPathUserProfile(_hostEnvironment, UserName, ProfileImage[0], DbPath);
+            }
+            else
+            {
+                return BadRequest("imagenotselected");
+            }
+            if (DbPath != "" || DbPath != "selectimage")
+            {
+                
+                var HashedPassword = BCrypt.Net.BCrypt.HashPassword(Password, workFactor);
+                registerUser.DateOfBrith = dateTime;
+                registerUser.FirstName = FirstName;
+                registerUser.LastName = LastName;
+                //registerUser.UserName = UserName;
+                registerUser.Gender = Gender;
+                registerUser.Sexuailty = Sexuailty;
+                registerUser.Sexuailty = Sexuailty;
+                registerUser.ImageProfilePath = DbPath;
+                registerUser.Password = HashedPassword;
+                var uniqueUserName = _midNiteAPIDbContext.RegisterUsers.Where(x => x.UserName.ToLower() == UserName.ToLower())
+                    .Select(x => x.UserName)
+                    .FirstOrDefault();
+                if (uniqueUserName is not null)
                 {
-                    
-                    string path2 = Path.Combine(path, "wwwroot");
-                    if (!Directory.Exists(path2))
-                    {
-                        Directory.CreateDirectory(path2);
-                    }
-                }
-
-                if (!Directory.Exists(_hostEnvironment.WebRootPath + "\\uploads\\"))
-                {
-                    Directory.CreateDirectory(_hostEnvironment.WebRootPath + "\\uploads\\");
-                }
-                if (!Directory.Exists(_hostEnvironment.WebRootPath + "\\uploads\\" + "\\" + UserName + "\\"))
-                {
-                    Directory.CreateDirectory(_hostEnvironment.WebRootPath + "\\uploads\\" + "\\" + UserName + "\\");
-                }
-                string extension = Path.GetExtension(ProfileImage[0].FileName);
-                bool CheckImageExtension = HelperFunction.GetImageExtension(extension.ToLower());
-
-                if (CheckImageExtension)
-                {
-                    string DbPath;
-                    using (FileStream filestream = System.IO.File.Create(_hostEnvironment.WebRootPath + "\\uploads\\" + "\\" + UserName + "\\" + ProfileImage[0].FileName))
-                    {
-                        ProfileImage[0].CopyTo(filestream);
-                        DbPath = filestream.Name;
-                        filestream.Flush();
-                    }
-                    const int workFactor = 10;
-                    var HashedPassword = BCrypt.Net.BCrypt.HashPassword(Password, workFactor);
-                    registerUser.DateOfBrith = dateTime;
-                    registerUser.FirstName = FirstName;
-                    registerUser.LastName = LastName;
                     registerUser.UserName = UserName;
-                    registerUser.Gender = Gender;
-                    registerUser.Sexuailty = Sexuailty;
-                    registerUser.Sexuailty = Sexuailty;
-                    registerUser.ImageProfilePath = DbPath;
-                    registerUser.Password = HashedPassword;
-                    _midNiteAPIDbContext.RegisterUsers.Add(registerUser);
+                    _midNiteAPIDbContext.RegisterUsers.Add(registerUser); // add check for with unique index 'IX_RegisterUsers_UserName
                     _midNiteAPIDbContext.SaveChanges();
                     return Ok(registerUser);
                 }
                 else
                 {
-                    return BadRequest("selectimage");
+                    return Ok("Error"); // User already Exit
                 }
             }
             else
             {
-                return BadRequest("imagenotselected");
+                var HashedPassword = BCrypt.Net.BCrypt.HashPassword(Password, workFactor);
+                registerUser.DateOfBrith = dateTime;
+                registerUser.FirstName = FirstName;
+                registerUser.LastName = LastName;
+                //registerUser.UserName = UserName;
+                registerUser.Gender = Gender;
+                registerUser.Sexuailty = Sexuailty;
+                registerUser.Sexuailty = Sexuailty;
+                registerUser.ImageProfilePath = DbPath;
+                registerUser.Password = HashedPassword;
+                var uniqueUserName = _midNiteAPIDbContext.RegisterUsers.Where(x => x.UserName.ToLower() == UserName.ToLower())
+                    .Select(x => x.UserName)
+                    .FirstOrDefault();
+                if (uniqueUserName is not null)
+                {
+                    registerUser.UserName = UserName;
+                    _midNiteAPIDbContext.RegisterUsers.Add(registerUser); // add check for with unique index 'IX_RegisterUsers_UserName
+                    _midNiteAPIDbContext.SaveChanges();
+                    return Ok(registerUser);
+                }
+                else
+                {
+                    return Ok("Error"); // User already Exit
+                }
+               
             }
         }
     }

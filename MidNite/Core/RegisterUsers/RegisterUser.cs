@@ -13,7 +13,7 @@ namespace MidNite.Core.RegisterUsers
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
+        public int RegisterUserId { get; set; }
         [MaxLength(25)]
         public string FirstName { get; set; }
         [MaxLength(25)]

@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using MidNite.Core.RegisterUsers;
+using System;
+
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace MidNite.Core.Events
 {
@@ -12,6 +11,7 @@ namespace MidNite.Core.Events
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int EventId { get; set; }
+        public RegisterUser registerUser  { get; set; }
         public string EventPicturePath { get; set; }
         public string Title { get; set; }
         public string Information { get; set; }
